@@ -95,6 +95,7 @@ def linear(x, m, b):
     :return: y value
     """
     x = _np.array(x)
+
     output = m * x + b
 
     return output
@@ -109,8 +110,8 @@ def gaussian(x, a, mu, sigma):
     :param sigma: standard deviation
     :return:
     """
-
     x = _np.array(x)
+
     output = a * _np.exp((x - mu)**2 / (2 * sigma ** 2))
 
     return output
