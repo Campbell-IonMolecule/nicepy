@@ -7,6 +7,6 @@ setup(
     author="Gary Chen",
     author_email="gkchen@physics.ucla.edu",
     description="NICE experiment data tools",
-    requires=['numpy', 'scipy', 'pint', 'matplotlib', 'pandas'],
+    requires=['numpy', 'scipy', 'pint', 'matplotlib', 'pandas', 'labrad'],
     url='https://github.com/Campbell-IonMolecule/nicepy'
 )
