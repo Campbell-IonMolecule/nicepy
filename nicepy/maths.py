@@ -52,40 +52,6 @@ def chi2_cdf(x, k):
     return output
 
 
-def weighted_mean(vals, sigma):
-    """
-
-    :param vals: values
-    :param sigma: errors
-    :return: error
-    """
-    vals = _np.array(vals)
-    sigma = _np.array(sigma)
-
-    top = _np.sum(vals / sigma)
-    bot = _np.sum(1 / sigma)
-
-    output = top / bot
-
-    return output
-
-
-def weighted_mean_error(sigma):
-    """
-
-    :param sigma: errors
-    :return:
-    """
-    sigma = _np.array(sigma)
-
-    top = len(sigma)
-    bot = _np.sum(1 / sigma)
-
-    output = top / bot
-
-    return output
-
-
 def linear(x, m, b):
     """
     Linear model
@@ -101,17 +67,48 @@ def linear(x, m, b):
     return output
 
 
+def constant(x, n):
+    """
+    Constant value model
+    :param x: independent variable
+    :param n: value
+    :return: value array
+    """
+
+    output = [n for _ in x]
+
+    return output
+
+
 def gaussian(x, a, mu, sigma):
     """
     Gaussian model
-    :param x: independent variablbe
+    :param x: independent variable
     :param a: height
-    :param mu: mean
+    :param mu: center
     :param sigma: standard deviation
-    :return:
+    :return: y value
     """
     x = _np.array(x)
 
-    output = a * _np.exp((x - mu)**2 / (2 * sigma ** 2))
+    output = a * _np.exp(- (x - mu)**2 / (2 * sigma ** 2))
+
+    return output
+
+
+def lorentzian(x, mu, gamma):
+    """
+    Lorentzian model
+    :param x: independent variable
+    :param mu: center
+    :param gamma: width
+    :return: y value
+    """
+    x = _np.array(x)
+
+    top = gamma
+    bot = 2 * _np.pi * ((x - mu) ** 2 + (gamma / 2) ** 2)
+
+    output = top / bot
 
     return output
