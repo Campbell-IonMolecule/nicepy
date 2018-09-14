@@ -8,6 +8,11 @@ from nicepy import u as _u
 class RGA:
     
     def __init__(self, filenames, bkg_range=(22, 26)):
+        """
+        Collects and cleans up RGA data
+        :param filenames: paths to RGA data files in .txt format
+        :param bkg_range: amu range to set background to
+        """
         self.filenames = filenames
         self.data = None
         self.get_data()
@@ -15,12 +20,12 @@ class RGA:
 
     def get_data(self):
         """
-        Gets rga data from .txt file
+        Gets RGA data from .txt file
         :return: DataFrame of averaged rga files
         """
         names = ['Mass', 'Pressure', '']
         data = []
-        for filename in self.filenames:
+        for filename in list(self.filenames):
             d = _pd.read_csv(filename, header=17)
             cols = d.columns
             replace = {c: n for c, n in zip(cols, names)}
@@ -38,7 +43,7 @@ class RGA:
 
     def subtract_bkg(self, mass_range):
         """
-
+        Subtracts background from data set by the mass range
         :param mass_range: tuple of range of masses to select for background subtraction
         :return: DataFrame with background subtracted
         """
@@ -50,6 +55,11 @@ class RGA:
         # self.data['Pressure (Torr)'].loc[self.data['Pressure (Torr)'] < 0] = 0
 
     def show(self, **kwargs):
+        """
+        Outputs plot of RGA trace
+        :param kwargs: plot arguments
+        :return: fig, ax
+        """
 
         fig, ax = _plt.subplots()
 
