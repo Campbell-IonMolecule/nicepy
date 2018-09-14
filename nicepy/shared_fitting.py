@@ -157,7 +157,8 @@ class SharedFit(_DataObj):
             line = ax.plot(xfit, total_fit, label='Total')
             ax.errorbar(x, total_data, yerr=total_error, color=line[0].get_color())
         if text is True:
-            ax.text(1, 0.5, self.fit_string(), transform=fig.transFigure)
+            string = self.fit_string().replace(',', ' $\pm$')
+            ax.text(1, 0.5, string, transform=fig.transFigure)
         ax.set_xlabel('Delay (s)')
         ax.set_ylabel('Ion Signal (arb)')
         ax.set_title(self.p)
