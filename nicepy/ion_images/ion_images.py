@@ -1,9 +1,11 @@
 from scipy.stats import sem as _sem
 from nicepy.data import DataObj as _DataObj
 import matplotlib.pyplot as _plt
+import numpy as _np
+import pandas as _pd
 
 from nicepy.labrad import dv as _dv
-from nicepy.labrad import *
+from nicepy import labrad
 
 
 class IonImages(_DataObj):
@@ -39,7 +41,7 @@ class IonImages(_DataObj):
         :param run: run of data int
         :return: data object
         """
-        cd(year, month, day, run, kind='images')
+        labrad.cd(year, month, day, run, kind='images')
         images = _dv.dir()[1]
         for image in images:
             _dv.open(image)
@@ -100,3 +102,64 @@ class IonImages(_DataObj):
         ax.set_xticks([])
 
         return fig, ax
+
+
+def collect_ion_data(year, month, day, run):
+
+    labrad.cd(year, month, day, run)
+
+    data = {}
+    for image in _dv.dir()[1]:
+        _dv.open(image)
+        if not data:
+            data['images'] = []
+            for key, val in _dv.get_parameters():
+                data[key] = [val]
+        else:
+            for key, val in _dv.get_parameters():
+                data[key].append(val)
+        dat = _np.array(_dv.get())
+        data['images'].append(dat)
+
+    df = _pd.DataFrame(data)
+
+    return df
+
+
+def count_ions(data, ratio=0.5, neighborhood_size=20):
+    """
+    counts ions in a 2D image
+
+    threshold is automatically determined by the ratio of filtered maximum and minimum
+
+    Parameters:
+    -----------
+    data: array of values
+    ratio: threshold ratio between max and min values in data
+    neighborhood_size: searched region around identified peak (ions default is 20)
+    """
+
+    data_max = _filters.maximum_filter(data, neighborhood_size)
+    maxima = (data == data_max)
+    data_min = _filters.minimum_filter(data, neighborhood_size)
+
+    maximum = _n.max(data_max)
+    minimum = _n.min(data_min)
+
+    threshold = (maximum - minimum) * ratio + minimum
+
+    diff = ((data_max - data_min) > threshold)
+    maxima[diff == 0] = 0
+
+    labeled, num_objects = _ndimage.label(maxima)
+
+    slices = _ndimage.find_objects(labeled)
+
+    x, y = [], []
+    for dy, dx in slices:
+        x_center = (dx.start + dx.stop - 1) / 2
+        x.append(x_center)
+        y_center = (dy.start + dy.stop - 1) / 2
+        y.append(y_center)
+
+    return labeled, num_objects, x, y

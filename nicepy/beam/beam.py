@@ -1,5 +1,6 @@
 from numpy import pi as _pi
 from numpy import sqrt as _sqrt
+from numpy import array as _array
 from nicepy import u as _u
 
 _e = 4.8e-10  # CGS elementary charge
@@ -47,7 +48,7 @@ def max_supersonic_velocity(temperature, mu, gamma):
     top = 2 * _u.k * temperature * gamma
     bot = mu * (gamma - 1)
 
-    output = top / bot
+    output = _sqrt(top / bot)
 
     return output
 
@@ -74,6 +75,7 @@ def pressure_or_density(value, temperature):
     :param temperature: temperature of gas
     :return: reciprocal of input value
     """
+
     kind = None
     units = {'pressure': _u.torr, 'density': _u.cm**-3}
     for key, val in units.items():
@@ -162,7 +164,7 @@ def ado(alpha, mu, mu_d, c, temperature):
 # def quadrupole(self):
 #     a = self.langevin
 #     b = 0.0146*self.vals[self.species]['Q']**2
-#     c = np.sqrt(self.kb * self.temp) * self.e * self.vals[self.species]['alpha']**1.5
+#     c = _np.sqrt(self.kb * self.temp) * self.e * self.vals[self.species]['alpha']**1.5
 #     self.quadrupole = a*b/c
 
 
