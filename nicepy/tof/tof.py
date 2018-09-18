@@ -1,167 +1,216 @@
 from os import listdir
 import numpy as _np
 import scipy as _sp
+import pandas as _pd
 import copy
-import matplotlib as _plt
+import matplotlib.pyplot as _plt
 from matplotlib import rcParams
 import itertools
 from nicepy.data import DataObj as _DataObj
 
 
-class TofFiles(object):
-    """
-    Class for cleaning up and parsing TOF data files from directory
+# class TofFiles(object):
+#     """
+#     Class for cleaning up and parsing TOF data files from directory
+#
+#     Parsing with self.exact [(start, stop, string)]
+#     """
+#
+#     def __init__(self, excludes=[], includes=[], exact=[], endswith='.txt', startswith='', delimiter='_',
+#                  remove=['.txt'], params={}):
+#         self.excludes = excludes
+#         self.includes = includes
+#         self.exact = exact
+#         self.endswith = endswith
+#         self.startswith = startswith
+#         self.delimiter = delimiter
+#         self.remove = remove
+#         self.params = params
+#         self.raw_files = {}
+#         self.parsed_files = []
+#
+#     def _raw_files(self, directory):
+#         """
+#         Gathers raw files that satisfy start and end conditions
+#         :param directory: directory of TOF files
+#         :return: None
+#         """
+#         all_files = listdir(directory)
+#         for fstring in all_files:
+#             if fstring.endswith(self.endswith):
+#                 if fstring.startswith(self.startswith):
+#                     fil = tuple(self._split_file(fstring))
+#                     self.raw_files[fil] = directory + fstring
+#
+#     def _split_file(self, fstring):
+#         """
+#         Removes unwanted substrings and splits files according to delimiter
+#         :param fstring: file string
+#         :return: array of file substrings
+#         """
+#         for i in self.remove:
+#             if i in fstring:
+#                 fstring = fstring.replace(i, '')
+#         fil = fstring.split(self.delimiter)
+#         return fil
+#
+#     def _parse_files(self):
+#         """
+#         Parses wanted files according to excludes and includes arrays
+#         :return:
+#         """
+#         if type(self.excludes) is not list:
+#             self.excludes = [self.excludes]
+#         if type(self.includes) is not list:
+#             self.includes = [self.includes]
+#         if type(self.exact) is not list:
+#             self.exact = [self.exact]
+#
+#         for fil, fstring in self.raw_files.items():
+#             good = True
+#             if len(self.includes) is not 0:
+#                 for inc in self.includes:
+#                     if inc not in fil:
+#                         good = False
+#                         break
+#             if len(self.excludes) is not 0:
+#                 for exc in self.excludes:
+#                     if exc in fil:
+#                         good = False
+#                         break
+#             if len(self.exact) is not 0:
+#                 for i, ii, exa in self.exact:
+#                     if exa not in fil[i: ii]:
+#                         good = False
+#                         break
+#
+#             if good is True:
+#                 p = self._get_params(fil)
+#                 t = _DataObj(fstring, p)
+#                 self.parsed_files.append(t)
+#
+#     def _get_params(self, fil):
+#         """
+#         Takes self.params key as key and value as index
+#         :param fil: array of file substrings
+#         :return:
+#         """
+#         params = {}
+#         for key, idx in self.params.items():
+#             if '.' in fil[idx]:
+#                 value = float(fil[idx])
+#             else:
+#                 try:
+#                     value = int(fil[idx])
+#                 except ValueError:
+#                     value = fil[idx]
+#
+#             params[key] = value
+#         return params
+#
+#     def get_files(self, directory):
+#         self._raw_files(directory)
+#         self._parse_files()
 
-    Parsing with self.exact [(start, stop, string)]
-    """
 
-    def __init__(self, excludes=[], includes=[], exact=[], endswith='.txt', startswith='', delimiter='_',
-                 remove=['.txt'], params={}):
-        self.excludes = excludes
-        self.includes = includes
-        self.exact = exact
-        self.endswith = endswith
-        self.startswith = startswith
-        self.delimiter = delimiter
-        self.remove = remove
-        self.params = params
-        self.raw_files = {}
-        self.parsed_files = []
-
-    def _raw_files(self, directory):
-        """
-        Gathers raw files that satisfy start and end conditions
-        :param directory: directory of TOF files
-        :return: None
-        """
-        all_files = listdir(directory)
-        for fstring in all_files:
-            if fstring.endswith(self.endswith):
-                if fstring.startswith(self.startswith):
-                    fil = tuple(self._split_file(fstring))
-                    self.raw_files[fil] = directory + fstring
-
-    def _split_file(self, fstring):
-        """
-        Removes unwanted substrings and splits files according to delimiter
-        :param fstring: file string
-        :return: array of file substrings
-        """
-        for i in self.remove:
-            if i in fstring:
-                fstring = fstring.replace(i, '')
-        fil = fstring.split(self.delimiter)
-        return fil
-
-    def _parse_files(self):
-        """
-        Parses wanted files according to excludes and includes arrays
-        :return:
-        """
-        if type(self.excludes) is not list:
-            self.excludes = [self.excludes]
-        if type(self.includes) is not list:
-            self.includes = [self.includes]
-        if type(self.exact) is not list:
-            self.exact = [self.exact]
-
-        for fil, fstring in self.raw_files.items():
-            good = True
-            if len(self.includes) is not 0:
-                for inc in self.includes:
-                    if inc not in fil:
-                        good = False
-                        break
-            if len(self.excludes) is not 0:
-                for exc in self.excludes:
-                    if exc in fil:
-                        good = False
-                        break
-            if len(self.exact) is not 0:
-                for i, ii, exa in self.exact:
-                    if exa not in fil[i: ii]:
-                        good = False
-                        break
-
-            if good is True:
-                p = self._get_params(fil)
-                t = _DataObj(fstring, p)
-                self.parsed_files.append(t)
-
-    def _get_params(self, fil):
-        """
-        Takes self.params key as key and value as index
-        :param fil: array of file substrings
-        :return:
-        """
-        params = {}
-        for key, idx in self.params.items():
-            if '.' in fil[idx]:
-                value = float(fil[idx])
-            else:
-                try:
-                    value = int(fil[idx])
-                except ValueError:
-                    value = fil[idx]
-
-            params[key] = value
-        return params
-
-    def get_files(self, directory):
-        self._raw_files(directory)
-        self._parse_files()
-
-
-class TofData(_DataObj):
+class TofData:
     """
     General class for TOF data
     """
 
-    def __init__(self, fstring, params, fluor=True, factor=0.92152588, offset=-0.36290086):
+    def __init__(self, filename, params, norm=True, noise_range=(0, 8), bkg_range=(0, 8), fluor=True, factor=0.92152588, offset=-0.36290086):
         """
         Init function
         :param fstring: file path string
         :param params: dictionary of data parameters
         """
-        _DataObj.__init__(self, {}, params)
+        self.filename = filename
+        self.norm = norm
+        self.noise_range = noise_range
+        self.bkg_range = bkg_range
         self.factor = factor
         self.offset = offset
         self.fluor = fluor
-        self.collect_data(fstring)
+        self._get_data(filename)
+        self._subtract_bkg()
+        self._get_noise()
+        self._get_params(filename, params)
 
-    def _file_data(self, fil):
-        dat = list(_np.loadtxt(fil))
+    def _get_data(self, filename):
+        """
+
+        :param filename:
+        :return:
+        """
+        dat = list(_np.loadtxt(filename))
         fluor = dat.pop()
         if self.fluor is False:
             fluor = 1
         center = int(len(dat) / 2)
 
-        self.d['time'] = _np.array([s for s in dat[:center]])
-        self._time_to_mass()
+        time = _np.array([s for s in dat[:center]])
+        mass = _time_to_mass(time, self.factor, self.offset)
 
-        raw = _np.array([-i / fluor for i in dat[center:]])
-        m = _np.mean(raw[-300:])
-        self.d['volts'] = raw - m
-        self.sum = _np.sum(self.d['volts'])
+        raw = _np.array([-i / fluor for i in dat[center:]]) / fluor
 
-    def _time_to_mass(self):
-        self.d['mass'] = [(t - self.factor) ** 2 + self.offset for t in self.d['time']]
+        raw = _pd.DataFrame({'Time': time, 'Mass': mass, 'Volts': raw})
 
-    def collect_data(self, fstring):
-        self._file_data(fstring)
+        if self.norm is True:
+            tot = raw['Volts'].sum()
+            raw['Volts'] = raw['Volts']/tot
+
+        self.data = raw
+
+    def _subtract_bkg(self):
+        temp = self._select_range('Mass', self.bkg_range[0], self.bkg_range[1])['Volts']
+        m = temp.mean()
+        self.data['Volts'] = self.data['Volts'] - m
+
+    def _get_noise(self):
+        temp = self._select_range('Mass', self.noise_range[0], self.noise_range[1])['Volts']
+        n = temp.std()
+        self.noise = n
+
+    def _get_params(self, filename, params):
+        """
+
+        :param filename:
+        :param params:
+        :return:
+        """
+        listed = filename.replace('.txt', '').split('_')
+        self.params = {key: listed[val] for key, val in params.items()}
+
+    def _select_range(self, column, lower, upper):
+        """
+        Selects part of data that is between values upper and lower in column
+        :param column: column name to be used to bound
+        :param lower: lower value in column
+        :param upper: upper value in column
+        :return: parsed data frame
+        """
+        temp = self.data[(self.data[column] <= upper) & (self.data[column] >= lower)]
+        return temp
+
+    def show(self, x='Mass', **kwargs):
+        """
+
+        :param x:
+        :param kwargs:
+        :return:
+        """
+        fig, ax = _plt.subplots()
+        self.data.plot.line(x=x, y='volts', ax=ax, **kwargs)
+
+        return fig, ax
 
 
-class TofSet(TofFiles):
+class TofSet:
     """
     Class for sets of TOF data objects
     """
 
-    def __init__(self, excludes=[], includes=[], exact=[], endswith='.txt', startswith='', delimiter='_',
-                 remove=['.txt'], params={}, masses=None, filter=False, filter_f = 1, factor=0.92152588,
-                 offset=-0.36290086,
-                 fluor=True, fitting='Full', upper=30, lower=-20):
-        TofFiles.__init__(self, excludes=excludes, includes=includes, exact=exact, endswith=endswith,
-                          startswith=startswith, delimiter=delimiter, remove=remove, params=params)
+    def __init__(self, masses=None, filter=False, filter_f = 1, factor=0.92152588, offset=-0.36290086, fluor=True, fitting='Full', upper=30, lower=-20):
         self.raw = []
         self.avg = []
         self.peaks = []
@@ -175,13 +224,14 @@ class TofSet(TofFiles):
         self._upper = upper
         self._lower = lower
 
-    def _get_data(self):
-        if len(self.parsed_files) == 0:
+    def _get_data(self, filenames, params, **kwargs):
+        self.filenames = filenames
+        if len(filenames) == 0:
             print('No files to get data from')
             return
-        for toffile in self.parsed_files:
-            t = TofData(toffile.d, toffile.p, fluor=self.fluor, factor=self.factor, offset=self.offset)
-            self.raw.append(t)
+        for filename in filenames:
+            t = TofData(filename, params, fluor=self.fluor, **kwargs)
+
 
     def _filter_data(self):
         sums = [raw.sum for raw in self.raw]
@@ -704,24 +754,6 @@ class TofSet(TofFiles):
         return figs
 
 
-def format_fig(fig, height=8, width=8 * _sp.constants.golden, dpi=300):
-    fig.set_size_inches(width, height)
-    fig.set_dpi(dpi)
-
-
-def format_ax(ax, font=30, label=24, box_out=True):
-    ax.tick_params(labelsize=label)
-    ax.yaxis.offsetText.set_fontsize(label)
-    ax.xaxis.offsetText.set_fontsize(label)
-    if box_out is True:
-        ax.legend(fontsize=label, frameon=False, loc='upper left', bbox_to_anchor=(1.04, 1))
-    elif box_out is False:
-        ax.legend(fontsize=label, frameon=False, loc=0)
-    ax.xaxis.label.set_size(label)
-    ax.yaxis.label.set_size(label)
-    ax.title.set_fontsize(font)
-
-
 def _gaussian(x, peak, x0, sigma):
     g = peak * _np.exp(-(x - x0) ** 2 / (2 * sigma ** 2))
     return g
@@ -819,6 +851,7 @@ def ratio_error(data, idxs, mass1, mass2):
 # New stuff
 
 
-def _time_to_mass(t, t0, m0):
-    output = (t - t0) ** 2 + m0
-    return output
+def _time_to_mass(time, factor, offset):
+    mass = [(t - factor) ** 2 + offset for t in time]
+
+    return mass

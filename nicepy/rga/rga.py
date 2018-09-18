@@ -13,23 +13,22 @@ class RGA:
         :param filenames: paths to RGA data files in .txt format
         :param bkg_range: amu range to set background to
         """
+        if type(filenames) is not list:
+            filenames = [filenames]
         self.filenames = filenames
         self.data = None
-        self.get_data()
-        self.subtract_bkg(bkg_range)
+        self._get_data()
+        self._subtract_bkg(bkg_range)
 
-    def get_data(self):
+    def _get_data(self):
         """
         Gets RGA data from .txt file
         :return: DataFrame of averaged rga files
         """
-        names = ['Mass', 'Pressure', '']
         data = []
-        for filename in list(self.filenames):
-            d = _pd.read_csv(filename, header=17)
-            cols = d.columns
-            replace = {c: n for c, n in zip(cols, names)}
-            data.append(d.rename(index=str, columns=replace))
+        for filename in self.filenames:
+            d = _pd.read_table(filename, header=17, delimiter=',', names=['Mass', 'Pressure'], index_col=False)
+            data.append(d)
 
         if len(data) > 1:
             temp = _pd.concat(data, axis=1)
@@ -41,7 +40,7 @@ class RGA:
 
         self.data = temp[['Mass (m/z)', 'Pressure (Torr)', 'Sigma (Torr)']].copy()
 
-    def subtract_bkg(self, mass_range):
+    def _subtract_bkg(self, mass_range):
         """
         Subtracts background from data set by the mass range
         :param mass_range: tuple of range of masses to select for background subtraction
@@ -49,7 +48,7 @@ class RGA:
         """
         upper = max(mass_range)
         lower = min(mass_range)
-        a = self.data.loc[(self.data['Mass (m/z)'] <= upper) & (self.data['Mass (m/z)'] >= lower)]
+        a = self._select_range('Mass (m/z)', lower, upper)
         bkg = abs(a['Pressure (Torr)'].mean())
         self.data['Pressure (Torr)'] = self.data['Pressure (Torr)'] - bkg
         # self.data['Pressure (Torr)'].loc[self.data['Pressure (Torr)'] < 0] = 0
@@ -67,15 +66,30 @@ class RGA:
 
         return fig, ax
 
-    def select_masses(self, mass, num):
-        idx = self.data.index[self.data['Mass (m/z)'] == mass].tolist()
-        idx = [str(int(idx[0]) + i) for i in range(num + 1)]
-        a = self.data.loc[idx]
-        p = a.mean()['Pressure (Torr)']
-        if len(a) == 0:
+    def _select_range(self, column, lower, upper):
+        """
+        Selects part of data that is between values upper and lower in column
+        :param column: column name to be used to bound
+        :param lower: lower value in column
+        :param upper: upper value in column
+        :return: parsed data frame
+        """
+        temp = self.data[(self.data[column] <= upper) & (self.data[column] >= lower)]
+        return temp
+
+    def get_avg_pressure(self, lower, upper):
+        """
+        Gets an average pressure and standard error from a mass range
+        :param lower: lower mass value
+        :param upper: upper mass value
+        :return: average and standard error for masses in defined mass range
+        """
+        temp = self._select_range('Mass (m/z)', lower, upper)['Pressure (Torr)']
+        p = temp.mean()
+        if len(temp) == 0:
             s = abs(p * 0.1)
         else:
-            s = a['Pressure (Torr)'].sem()
+            s = temp.sem()
         return p, s
 
     def water_iso(self, alpha=0.768, beta=0.185, gamma=0.047, h2o_val=18.1, hod_val=19.1, d2o_val=20.1, num=2):
