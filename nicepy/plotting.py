@@ -3,12 +3,6 @@ from scipy.constants import golden as _golden
 import numpy as _np
 
 
-def format_plot(fig, ax=False, **kwargs):
-    format_fig(fig, **kwargs)
-    if ax:
-        format_ax(ax, **kwargs)
-
-
 def format_fig(fig, height=8, width=8 * _golden, dpi=300):
     """
     Generic formatting of figure

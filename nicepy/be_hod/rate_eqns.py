@@ -38,6 +38,7 @@ class Direct:
 
         return output
 
+
 class FixK1:
     """
     Equations for Be^+ + HOD reaction without BeOH and BeOD interchange but fixing the rate constant for Be^+ + H2O (k1)

@@ -92,12 +92,9 @@ class RGA:
             s = temp.sem()
         return p, s
 
-    def water_iso(self, alpha=0.768, beta=0.185, gamma=0.047, h2o_val=18.1, hod_val=19.1, d2o_val=20.1, num=2):
-        h2o_val = h2o_val
-        hod_val = hod_val
-        d2o_val = d2o_val
+    def water_iso(self, alpha=0.768, beta=0.185, gamma=0.047, h2o_range=(18.1, 18.2), hod_range=(19.1, 19.2), d2o_range=(20.1, 20.2)):
 
-        masses = {'H2O': h2o_val, 'HOD': hod_val, 'D2O': d2o_val}
+        masses = {'H2O': h2o_range, 'HOD': hod_range, 'D2O': d2o_range}
 
         def h2o(p1, p2, p3):
             a = 1 / alpha
@@ -144,7 +141,7 @@ class RGA:
         errors = {}
 
         for key, val in masses.items():
-            p, s = self.select_masses(val, num)
+            p, s = self.get_avg_pressure(val[0], val[1])
             vals[key] = p
             errors[key] = s
 
@@ -164,6 +161,5 @@ class RGA:
         data['D2O']['error'] = d2o_error(sp3)
 
         self.water_iso_pressures = _pd.DataFrame(data)
-        temp = {key: _p_or_d(self.water_iso_pressures.loc['val'][key] * _u.torr, 300 * _u.K).magnitude for key in
-          self.water_iso_pressures.loc['val'].keys()}
+        temp = {key: _p_or_d(self.water_iso_pressures.loc['val'][key] * _u.torr, 300 * _u.K).magnitude for key in self.water_iso_pressures.loc['val'].keys()}
         self.water_iso_densities = _pd.Series(temp)
