@@ -1,12 +1,6 @@
-from os import listdir
 import numpy as _np
-import scipy as _sp
 import pandas as _pd
-import copy
 import matplotlib.pyplot as _plt
-from matplotlib import rcParams
-import itertools
-from nicepy.data import DataObj as _DataObj
 
 
 class TofData:
@@ -16,9 +10,15 @@ class TofData:
 
     def __init__(self, filename, params, norm=True, noise_range=(3, 8), bkg_range=(3, 8), fluor=True, factor=0.92152588, offset=-0.36290086):
         """
-        Init function
-        :param fstring: file path string
-        :param params: dictionary of data parameters
+
+        :param filename:
+        :param params:
+        :param norm:
+        :param noise_range:
+        :param bkg_range:
+        :param fluor:
+        :param factor:
+        :param offset:
         """
         self.filename = filename
         self.idx = False
@@ -32,6 +32,8 @@ class TofData:
         self._subtract_bkg()
         self._get_noise()
         self._get_params(filename, params)
+        self.peaks = None
+        self.idx = None
 
     def _get_data(self, filename):
         """
@@ -59,11 +61,19 @@ class TofData:
         self.raw = raw
 
     def _subtract_bkg(self):
+        """
+
+        :return:
+        """
         temp = self._select_range('Mass', self.bkg_range[0], self.bkg_range[1])['Volts']
         m = temp.mean()
         self.raw['Volts'] = self.raw['Volts'] - m
 
     def _get_noise(self):
+        """
+
+        :return:
+        """
         temp = self._select_range('Mass', self.noise_range[0], self.noise_range[1])['Volts']
         n = temp.std()
         self.noise = n
@@ -108,10 +118,22 @@ class TofData:
         return temp
 
     def _get_closest(self, column, value):
+        """
+
+        :param column:
+        :param value:
+        :return:
+        """
         temp = self.raw.loc[(self.raw[column] - value).abs().idxmin()]
         return temp
 
     def _get_range(self, mass, pk_range=(-80, 80)):
+        """
+
+        :param mass:
+        :param pk_range:
+        :return:
+        """
         idx = self._get_closest('Mass', mass).name
         lower = idx + pk_range[0]
         if lower < 0:
@@ -123,7 +145,12 @@ class TofData:
         return lower, upper
 
     def _get_peak(self, lower, upper):
+        """
 
+        :param lower:
+        :param upper:
+        :return:
+        """
         temp = self.raw.loc[range(lower, upper + 1)]
         p = temp['Volts'].sum()
         if p < self.noise:
@@ -132,6 +159,12 @@ class TofData:
         return p
 
     def get_peaks(self, masses, **kwargs):
+        """
+
+        :param masses:
+        :param kwargs:
+        :return:
+        """
         self.peaks = {}
         self.idx = {}
         for key, val in masses.items():
@@ -151,11 +184,13 @@ class TofData:
         """
 
         :param x:
+        :param shade:
         :param kwargs:
         :return:
         """
         fig, ax = _plt.subplots()
-        self.raw.plot.line(x=x, y='Volts', title='%s' %self.params, xlim=(3, 40), color='black', ax=ax, **kwargs)
+        title = {key: val for key, val in self.params.items()}
+        self.raw.plot.line(x=x, y='Volts', title='%s' % title, xlim=(3, 40), color='black', ax=ax, **kwargs)
         if shade is True:
             if self.idx is not False:
                 for key, val in self.idx.items():
@@ -174,34 +209,70 @@ class TofData:
 class TofSet:
 
     def __init__(self, filenames, params, **kwargs):
+        """
+
+        :param filenames:
+        :param params:
+        :param kwargs:
+        """
         self.filenames = filenames
         self.params = params
         self._get_tofs(**kwargs)
         self._get_raw()
+        self.peaks = None
 
     def _get_tofs(self, **kwargs):
-        self.tof_list = []
+        """
+
+        :param kwargs:
+        :return:
+        """
+        self._tof_list = []
         for filename in self.filenames:
             t = TofData(filename, self.params, **kwargs)
-            self.tof_list.append(t)
+            self._tof_list.append(t)
+
+        tof_objs = []
+        for t in self._tof_list:
+            temp = t.params.copy()
+            temp['tof'] = t
+            tof_objs.append(temp)
+        self.tof_objs = _pd.DataFrame(tof_objs)
 
     def _get_raw(self):
+        """
+
+        :return:
+        """
         temp_list = []
-        for t in self.tof_list:
+        for t in self._tof_list:
             temp = t.raw
             for key, val in t.params.items():
-                temp[key] = [val] * temp.shape[0]
+                temp[key] = val
             temp_list.append(temp)
         self.raw = _pd.concat(temp_list)
 
-    def get_tofs_peaks(self, masses, **kwargs):
-        for t in self.tof_list:
+    def _get_tof_peaks(self, masses, **kwargs):
+        """
+
+        :param masses:
+        :param kwargs:
+        :return:
+        """
+        for t in self._tof_list:
             t.get_peaks(masses, **kwargs)
 
-    def get_peaks(self):
+    def get_peaks(self, masses, **kwargs):
+        """
+
+        :param masses:
+        :param kwargs:
+        :return:
+        """
+        self._get_tof_peaks(masses, **kwargs)
         temp_list = []
-        for t in self.tof_list:
+        for t in self._tof_list:
             temp = _pd.concat([t.peaks, t.params])
             temp_list.append(temp)
-        temp = _pd.concat(temp_list)
+        temp = _pd.concat(temp_list, axis=1)
         self.peaks = temp.transpose()
