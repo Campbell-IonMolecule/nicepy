@@ -1,6 +1,8 @@
 import numpy as _np
+from scipy.stats import sem as _sem
 import pandas as _pd
 import matplotlib.pyplot as _plt
+from nicepy import format_fig as _ff, format_ax as _fa
 
 
 class TofData:
@@ -92,6 +94,8 @@ class TofData:
             if key.lower() == 'version':
                 val = val.lower()
                 val = val.replace('v', '')
+            else:
+                pass
             if '.' in val:
                 try:
                     val = float(val)
@@ -101,7 +105,7 @@ class TofData:
                 try:
                     val = int(val)
                 except ValueError:
-                    pass
+                    val = val.lower()
             self.params[key] = val
 
         self.params = _pd.Series(self.params)
@@ -190,7 +194,7 @@ class TofData:
         """
         fig, ax = _plt.subplots()
         title = {key: val for key, val in self.params.items()}
-        self.raw.plot.line(x=x, y='Volts', title='%s' % title, xlim=(3, 40), color='black', ax=ax, **kwargs)
+        self.raw.plot.line(x=x, y='Volts', title='%s' % title, color='black', ax=ax, **kwargs)
         if shade is True:
             if self.idx is not False:
                 for key, val in self.idx.items():
@@ -227,30 +231,40 @@ class TofSet:
         :param kwargs:
         :return:
         """
-        self._tof_list = []
+        tof_list = []
         for filename in self.filenames:
             t = TofData(filename, self.params, **kwargs)
-            self._tof_list.append(t)
+            tof_list.append(t)
 
         tof_objs = []
-        for t in self._tof_list:
+        for t in tof_list:
             temp = t.params.copy()
             temp['tof'] = t
             tof_objs.append(temp)
-        self.tof_objs = _pd.DataFrame(tof_objs)
+        temp = _pd.DataFrame(tof_objs)
+        temp.set_index(list(self.params.keys()), inplace=True)
+        self.tof_objs = temp.sort_index()
 
     def _get_raw(self):
         """
 
         :return:
         """
-        temp_list = []
-        for t in self._tof_list:
-            temp = t.raw
-            for key, val in t.params.items():
-                temp[key] = val
-            temp_list.append(temp)
-        self.raw = _pd.concat(temp_list)
+        # temp = self.tof_objs.copy()
+        # temp['raw'] = [t.raw for t in temp['tof']]
+        # self.raw = temp.drop('tof', axis=1)
+
+        temp = self.tof_objs.copy()
+        raw = []
+        for tof in temp['tof']:
+            t = tof.raw
+            for key, val in tof.params.items():
+                t[key] = val
+            raw.append(t)
+
+        self.raw = _pd.concat(raw)
+        self.raw.set_index(list(self.params.keys()), inplace=True)
+        self.raw.sort_index(inplace=True)
 
     def _get_tof_peaks(self, masses, **kwargs):
         """
@@ -259,7 +273,7 @@ class TofSet:
         :param kwargs:
         :return:
         """
-        for t in self._tof_list:
+        for t in self.tof_objs['tof']:
             t.get_peaks(masses, **kwargs)
 
     def get_peaks(self, masses, **kwargs):
@@ -271,8 +285,134 @@ class TofSet:
         """
         self._get_tof_peaks(masses, **kwargs)
         temp_list = []
-        for t in self._tof_list:
+        for t in self.tof_objs['tof']:
             temp = _pd.concat([t.peaks, t.params])
             temp_list.append(temp)
         temp = _pd.concat(temp_list, axis=1)
         self.peaks = temp.transpose()
+        self.peaks.set_index(list(self.params.keys()), inplace=True)
+        self.peaks.sort_index(inplace=True)
+        # self.peaks['total'] = self.peaks.sum(axis=1)
+
+    def get_raw_means(self, levels=None):
+        if levels is None:
+            levels = []
+            for key in ['version', 'delay']:
+                if key in self.params.keys():
+                    levels.append(key)
+        else:
+            pass
+
+        self.levels = levels
+
+        grouped = self.tof_objs.groupby(levels)
+        temp_mean = []
+        temp_error = []
+        for indices, group in grouped:
+            times = _np.mean([tof.raw['Time'] for tof in group['tof']], axis=0)
+            masses = _np.mean([tof.raw['Mass'] for tof in group['tof']], axis=0)
+            volts = _np.mean([tof.raw['Volts'] for tof in group['tof']], axis=0)
+            errors = _sem([tof.raw['Volts'] for tof in group['tof']], axis=0)
+            df_mean = _pd.DataFrame({'Time': times, 'Mass': masses, 'Volts': volts})
+            df_error = _pd.DataFrame({'Time': times, 'Mass': masses, 'Volts': errors})
+            if type(indices) is not tuple:
+                indices = [indices]
+            for key, index in zip(levels, indices):
+                df_mean[key] = index
+                df_error[key] = index
+            temp_mean.append(df_mean)
+            temp_error.append(df_error)
+        self.raw_means = _pd.concat(temp_mean)
+        self.raw_errors = _pd.concat(temp_error)
+        self.raw_means.set_index(levels, inplace=True)
+        self.raw_errors.set_index(levels, inplace=True)
+
+    def get_peak_means(self, levels=None):
+        """
+
+        :param levels: list of index keys
+        :return:
+        """
+        if levels is None:
+            levels = []
+            for key in ['version', 'delay']:
+                if key in self.params.keys():
+                    levels.append(key)
+        else:
+            pass
+        ignore = [key for key in self.params.keys() if key not in levels]
+        temp = self.peaks.reset_index(ignore, drop=True)
+        self.peak_means = temp.groupby(levels).mean()
+        self.peak_errors = temp.groupby(levels).sem()
+        self.peak_total = self.peak_means.sum(axis=1)
+
+    def show_means(self, x='Mass', fmt=False, box_out=True, **kwargs):
+        self.get_raw_means(**kwargs)
+
+        levels = []
+        figs = []
+        axs = []
+
+        for indices, group in self.raw_means.groupby(level=self.levels):
+            if type(indices) is not tuple:
+                indices = [indices]
+            fig, ax = _plt.subplots()
+            ax.set_title('%s' % {key: val for key, val in zip(self.levels, indices)})
+            group.loc[indices].plot.line(x=x, y='Volts', ax=ax, color='black', **kwargs)
+            if fmt is True:
+                _ff(fig)
+                _fa(ax, box_out=box_out)
+            levels.append(indices)
+            figs.append(fig)
+            axs.append(ax)
+
+        l = list(self.raw_means.index.names)
+
+        if type(indices) is tuple:
+            multi = _pd.MultiIndex.from_tuples(levels, names=l)
+            self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=multi)
+        else:
+            self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=levels)
+            self.fig_ax.index.name = l[0]
+
+    def show_peaks(self, norm=False, fmt=False, box_out=True, **kwargs):
+        if norm is False:
+            total = 1
+        else:
+            total = self.peak_total
+
+        means = self.peak_means.div(total, axis=0)
+        errors = self.peak_errors.div(total, axis=0)
+
+        indexes = means.index
+        if len(indexes.names) > 1:
+            levels = []
+            figs = []
+            axs = []
+            for indices, group in means.groupby(level=0):
+                fig, ax = _plt.subplots()
+                ax.set_title('%s' % (indices))
+                group.loc[indices].plot.line(yerr=errors.loc[indices], marker='o', ax=ax, **kwargs)
+                if fmt is True:
+                    _ff(fig)
+                    _fa(ax, box_out=box_out)
+                levels.append(indices)
+                figs.append(fig)
+                axs.append(ax)
+                l = list(self.peak_means.index.names)
+                l.remove('delay')
+
+                if type(indices) is tuple:
+                    multi = _pd.MultiIndex.from_tuples(levels, names=l)
+                    self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=multi)
+                else:
+                    self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=levels)
+                    self.fig_ax.index.name = l[0]
+
+        else:
+            fig, ax = _plt.subplots()
+            means.plot.line(yerr=errors, marker='o', ax=ax, **kwargs)
+            if fmt is True:
+                _ff(fig)
+                _fa(ax, box_out=box_out)
+            self.fig_ax = _pd.Series({'fig': fig, 'ax': ax})

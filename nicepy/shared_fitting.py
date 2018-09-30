@@ -124,7 +124,7 @@ class SharedFit(_DataObj):
             string = string[:-1]
         return string
 
-    def show(self, total=False, width=2, text=False):
+    def show(self, total=False, width=2, text=False, **kwargs):
         fig = _plt.figure()
         ax = fig.add_subplot(111)
 
@@ -145,7 +145,7 @@ class SharedFit(_DataObj):
                         linestyle='', marker='o',
                         linewidth=width, capthick=width,
                         markersize=(width - 1) * 4 + 6,
-                        label='')
+                        label='', **kwargs)
 
             total_data.append(self.d['vals'][key]/tot)
             total_error.append(self.d['errors'][key]/tot)
