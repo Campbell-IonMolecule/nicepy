@@ -112,3 +112,12 @@ def lorentzian(x, mu, gamma):
     output = top / bot
 
     return output
+
+
+def weighted_mean_and_error(values, errors):
+    values = _np.array(values)
+    errors = _np.array(errors)
+    avg = _np.average(values, weights=1 / errors)
+    err = _np.sqrt(1 / _np.sum(1 / errors))
+
+    return avg, err

@@ -35,7 +35,6 @@ class TofData:
         self._get_noise()
         self._get_params(filename, params)
         self.peaks = None
-        self.idx = None
 
     def _get_data(self, filename):
         """
@@ -223,6 +222,7 @@ class TofSet:
         self.params = params
         self._get_tofs(**kwargs)
         self._get_raw()
+        self.idx = False
         self.peaks = None
 
     def _get_tofs(self, **kwargs):
@@ -275,6 +275,7 @@ class TofSet:
         """
         for t in self.tof_objs['tof']:
             t.get_peaks(masses, **kwargs)
+        self.idx = t.idx
 
     def get_peaks(self, masses, **kwargs):
         """
@@ -346,8 +347,8 @@ class TofSet:
         self.peak_errors = temp.groupby(levels).sem()
         self.peak_total = self.peak_means.sum(axis=1)
 
-    def show_means(self, x='Mass', fmt=False, box_out=True, **kwargs):
-        self.get_raw_means(**kwargs)
+    def show_means(self, x='Mass', levels=None, shade=True, fmt=False, box_out=True, **kwargs):
+        self.get_raw_means(levels)
 
         levels = []
         figs = []
@@ -355,10 +356,21 @@ class TofSet:
 
         for indices, group in self.raw_means.groupby(level=self.levels):
             if type(indices) is not tuple:
-                indices = [indices]
+                idxs = [indices]
             fig, ax = _plt.subplots()
-            ax.set_title('%s' % {key: val for key, val in zip(self.levels, indices)})
+            ax.set_title('%s' % {key: val for key, val in zip(self.levels, idxs)})
             group.loc[indices].plot.line(x=x, y='Volts', ax=ax, color='black', **kwargs)
+            if shade is True:
+                if self.idx is not False:
+                    for key, val in self.idx.items():
+                        temp = group.loc[indices].reset_index()
+                        idx_range = temp.loc[range(val[0], val[2] + 1)]
+                        ax.fill_between(idx_range[x], idx_range['Volts'], label=key, alpha=0.5)
+                    ax.legend(loc=0)
+                else:
+                    pass
+            else:
+                pass
             if fmt is True:
                 _ff(fig)
                 _fa(ax, box_out=box_out)
@@ -370,10 +382,10 @@ class TofSet:
 
         if type(indices) is tuple:
             multi = _pd.MultiIndex.from_tuples(levels, names=l)
-            self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=multi)
+            self.means_fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=multi)
         else:
-            self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=levels)
-            self.fig_ax.index.name = l[0]
+            self.means_fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=levels)
+            self.means_fig_ax.index.name = l[0]
 
     def show_peaks(self, norm=False, fmt=False, box_out=True, **kwargs):
         if norm is False:
@@ -404,10 +416,10 @@ class TofSet:
 
                 if type(indices) is tuple:
                     multi = _pd.MultiIndex.from_tuples(levels, names=l)
-                    self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=multi)
+                    self.peaks_fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=multi)
                 else:
-                    self.fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=levels)
-                    self.fig_ax.index.name = l[0]
+                    self.peaks_fig_ax = _pd.DataFrame({'fig': figs, 'ax': axs}, index=levels)
+                    self.peaks_fig_ax.index.name = l[0]
 
         else:
             fig, ax = _plt.subplots()
@@ -415,4 +427,4 @@ class TofSet:
             if fmt is True:
                 _ff(fig)
                 _fa(ax, box_out=box_out)
-            self.fig_ax = _pd.Series({'fig': fig, 'ax': ax})
+            self.peaks_fig_ax = _pd.Series({'fig': fig, 'ax': ax})
