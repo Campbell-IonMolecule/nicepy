@@ -95,7 +95,7 @@ class TofData:
                 val = val.replace('v', '')
             else:
                 pass
-            if '.' in val:
+            if '.' in val or 'e' in val:
                 try:
                     val = float(val)
                 except ValueError:
@@ -339,15 +339,16 @@ class TofSet:
             for key in ['version', 'delay']:
                 if key in self.params.keys():
                     levels.append(key)
+            if len(levels) == 0:
+                levels = ['delay']
         else:
             pass
-        ignore = [key for key in self.params.keys() if key not in levels]
-        temp = self.peaks.reset_index(ignore, drop=True)
-        self.peak_means = temp.groupby(levels).mean()
-        self.peak_errors = temp.groupby(levels).sem()
+
+        self.peak_means = self.peaks.groupby(levels).mean()
+        self.peak_errors = self.peaks.groupby(levels).sem()
         self.peak_total = self.peak_means.sum(axis=1)
 
-    def show_means(self, x='Mass', levels=None, shade=True, fmt=False, box_out=True, **kwargs):
+    def show_means(self, x='Mass', show=True, levels=None, shade=True, fmt=False, box_out=True, **kwargs):
         self.get_raw_means(levels)
 
         levels = []
@@ -357,6 +358,8 @@ class TofSet:
         for indices, group in self.raw_means.groupby(level=self.levels):
             if type(indices) is not tuple:
                 idxs = [indices]
+            else:
+                idxs = indices
             fig, ax = _plt.subplots()
             ax.set_title('%s' % {key: val for key, val in zip(self.levels, idxs)})
             group.loc[indices].plot.line(x=x, y='Volts', ax=ax, color='black', **kwargs)
@@ -377,6 +380,8 @@ class TofSet:
             levels.append(indices)
             figs.append(fig)
             axs.append(ax)
+            if show is False:
+                _plt.close()
 
         l = list(self.raw_means.index.names)
 

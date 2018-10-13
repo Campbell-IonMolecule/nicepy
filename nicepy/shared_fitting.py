@@ -114,9 +114,11 @@ class SharedFit(_DataObj):
 
     def fit_string(self):
         args = [i for i in self.f.values()]
-        args = args[0].__code__.co_varnames
+        args = list(args[0].__code__.co_varnames)
+        if 'self' in args:
+            args.remove('self')
         string = ''
-        for arg, fit, cov in zip(args[2:], self.fit, _np.sqrt(_np.diag(self.cov))):
+        for arg, fit, cov in zip(args[1:], self.fit, _np.sqrt(_np.diag(self.cov))):
             string += '%s: %.02e, %.02e\n' % (arg, fit, cov)
         if self.chi2 is not None:
             string += 'reduced chi squared: %.02e' % self.chi2
