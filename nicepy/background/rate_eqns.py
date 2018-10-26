@@ -36,7 +36,7 @@ class FitP:
         """
         self.k1 = 1.2e-9 * pstate
         self.k2 = 2.5e-9 * pstate + 2.2e-9
-        self.k3 = 1e-9
+        self.k3 = 2.88e-9
 
     def Be(self, t, rho1, rho2, Be0, BeH0, BeOH0):
         output = Be0 * _np.exp(t * (-self.k1 * rho1 - self.k2 * rho2))

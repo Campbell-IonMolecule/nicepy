@@ -36,8 +36,8 @@ class Direct:
         aux0 = ((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3))) * ((((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3))) - (k5 * self.rho3)) - (k4 * self.rho2))
         aux1 = (_np.exp((((-k5 * self.rho3) - (k4 * self.rho2)) * t))) * ((((BeH0 + BeOH0) * (_np.exp((((k4 * self.rho2) + (k5 * self.rho3)) * t)))) - BeH0) * aux0)
         aux2 = (_np.exp((((k1 * self.rho1) + (((k2 + k4) * self.rho2) + ((k3 + k5) * self.rho3))) * t))) * (((k1 * self.rho1) + (k2 * self.rho2)) * ((((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3))) - (k5 * self.rho3)) - (k4 * self.rho2)))
-        aux3 = (_np.exp((((k4 * self.rho2) + (k5 * self.rho3)) * t))) * (((k4 - k2) * (p2 * ((k1 * self.rho1) + (k2 * self.rho2)))) + (((k1 * (k5 * self.rho1)) + (k2 * ((k5 - k3) * self.rho2))) * self.rho3))
-        aux4 = (_np.exp((((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3))) * t))) * (k1 * (p1 * ((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3)))))
+        aux3 = (_np.exp((((k4 * self.rho2) + (k5 * self.rho3)) * t))) * (((k4 - k2) * (self.rho2 * ((k1 * self.rho1) + (k2 * self.rho2)))) + (((k1 * (k5 * self.rho1)) + (k2 * ((k5 - k3) * self.rho2))) * self.rho3))
+        aux4 = (_np.exp((((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3))) * t))) * (k1 * (self.rho1 * ((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3)))))
         aux5 = (_np.exp((((((-(k3 + k5) * self.rho3)) - ((k2 + k4) * self.rho2)) - (k1 * self.rho1)) * t))) * ((aux2 + aux3) - aux4)
         output = ((aux1 + (Be0 * aux5)) / ((((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3))) - (k5 * self.rho3)) - (k4 * self.rho2))) / ((k1 * self.rho1) + ((k2 * self.rho2) + (k3 * self.rho3)))
 
