@@ -138,3 +138,46 @@ class Separate:
                     k1 * self.rho1 + (k2 * self.rho2 + k3 * self.rho3))
 
         return output
+    
+class Theory:
+    k1 = 2.02e-9
+    k2 = 2.290e-9
+    k3 = 2.291e-9
+
+    def __init__(self, rho1=1, rho2=1, rho3=1):
+        """
+        Sets densities of H2O, HOD, and D2O
+        Default values set to 1
+        :param rho1: H2O density
+        :param rho2: HOD density
+        :param rho3: D2O density
+        """
+        self.rho1 = rho1
+        self.rho2 = rho2
+        self.rho3 = rho3
+
+    def Be(self, t, eta, Be0, BeOH0, BeOD0):
+        output = Be0 * (_np.exp(((((-self.k3 * self.rho3) - self.k2 * self.rho2) - self.k1 * self.rho1) * t)))
+
+        return output
+
+    def BeOH(self, t, eta, Be0, BeOH0, BeOD0):
+        aux0 = (_np.exp(((((-self.k3 * self.rho3) - self.k2 * self.rho2) - self.k1 * self.rho1) * t))) * (
+                    (-1. + (_np.exp(((self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3)) * t)))) * (
+                        (self.k1 * self.rho1 + self.k2 * self.rho2) - (eta * self.k2 * self.rho2)))
+
+        output = ((Be0 * aux0) + (BeOH0 * (self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3)))) / (
+                    self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3))
+
+        return output
+
+    def BeOD(self, t, eta, Be0, BeOH0, BeOD0):
+        aux0 = (BeOD0 * ((_np.exp(((self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3)) * t))) * (
+                    self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3)))) + (Be0 * (
+                    (-1. + (_np.exp(((self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3)) * t)))) * (
+                        (eta * self.k2 * self.rho2) + self.k3 * self.rho3)))
+
+        output = ((_np.exp(((((-self.k3 * self.rho3) - self.k2 * self.rho2) - self.k1 * self.rho1) * t))) * aux0) / (
+                    self.k1 * self.rho1 + (self.k2 * self.rho2 + self.k3 * self.rho3))
+
+        return output
