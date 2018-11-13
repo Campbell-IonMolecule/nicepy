@@ -3,16 +3,17 @@ import numpy as _np
 from nicepy.maths import reduced_chi_squared as _chi2
 from scipy.optimize import curve_fit, OptimizeWarning
 import matplotlib.pyplot as _plt
+import pandas as _pd
 
 
 class SharedFit(_DataObj):
     def __init__(self, x, vals, errors, functions, params=False, norm=False):
         """
         Imports data and functions and creates stacks for fitting
-        vals, and errors need to be dicts with keys corresponding to function names
+        vals, and errors need to rate_constants dicts with keys corresponding to function names
 
         IMPORTANT:
-        Data should be sorted per the x list, _shared_functions iterates through function list with each non-repeated starting value, so data lists must reflect this ordering.
+        Data should rate_constants sorted per the x list, _shared_functions iterates through function list with each non-repeated starting value, so data lists must reflect this ordering.
         e.g. x = [1,1,2,3,4,5,1,...]
         function[0] is passed for x values [1,1,2,3,4,5], the next 1 in x is then passed function[1], etc.
 
@@ -61,7 +62,7 @@ class SharedFit(_DataObj):
         Stores functions as attributes
 
         Function names must match self.masses keys
-        :param functions: list of functions to be used in fitting
+        :param functions: list of functions to rate_constants used in fitting
         :return:
         """
         self.f = {funct.__name__: funct for funct in functions}
@@ -109,8 +110,20 @@ class SharedFit(_DataObj):
             self.cov = _np.ones((len(self.guess), len(self.guess))) * _np.inf
             print('no fit')
 
+        self._get_fits()
+
     def print_fit(self):
         print(self.fit_string())
+
+    def _get_fits(self):
+        args = [i for i in self.f.values()]
+        args = list(args[0].__code__.co_varnames)
+        if 'self' in args:
+            args.remove('self')
+
+        self.fits = _pd.Series(self.fit, index=args[1 : len(self.fit)+1])
+        self.covs = _pd.Series(_np.sqrt(_np.diag(self.cov)), index=args[1 : len(self.fit)+1])
+
 
     def fit_string(self):
         args = [i for i in self.f.values()]

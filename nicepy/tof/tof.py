@@ -112,7 +112,7 @@ class TofData:
     def _select_range(self, column, lower, upper):
         """
         Selects part of data that is between values upper and lower in column
-        :param column: column name to be used to bound
+        :param column: column name to rate_constants used to bound
         :param lower: lower value in column
         :param upper: upper value in column
         :return: parsed data frame
