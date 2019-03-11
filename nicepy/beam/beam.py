@@ -102,15 +102,15 @@ def pressure_or_density(value, temperature):
 def pressure_to_density(pressure, temperature):
     """
     Calculates molecular density from a pressure
-    :param pressure:
-    :param temperature:
-    :return:
+    :param pressure: pressure values
+    :param temperature: temperature value
+    :return: array of densities
     """
-    pressure = _array(pressure)
     top = pressure
-    bot = _u.k * temperature
+    bot = 1 * _u.k * temperature
 
     output = top/bot
+    output.ito(_u.cm**(-3))
 
     return output
 
@@ -118,13 +118,13 @@ def pressure_to_density(pressure, temperature):
 def density_to_pressure(density, temperature):
     """
     Calculates pressure from a molecular density
-    :param density:
-    :param temperature:
+    :param density: density of gas
+    :param temperature: temperature of gas
     :return:
     """
-    density = _array(density)
 
     output = density * _u.k * temperature
+    output.ito(_u.torr)
 
     return output
 

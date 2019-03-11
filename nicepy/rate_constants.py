@@ -2,20 +2,24 @@ from numpy import sqrt as _sqrt, pi as _pi
 _e = 4.8e-10  # CGS elementary charge
 _kb = 1.38e-16  # CGS boltzmann constant
 
+
 def be_h2(pstate):
     output = 1.2e-9 * pstate
 
     return output
+
 
 def be_h2o(pstate):
     output = 2.5e-9 * pstate + 2.2e-9
 
     return output
 
+
 def be_o2(pstate):
     output = 5.5e-11 + pstate
 
     return output
+
 
 def reduced_mass(mass1, mass2):
     """
@@ -81,5 +85,30 @@ def ado(temperature, mass1, mass2, mu_d, c, alpha):
     :return: ADO rate constant (cm^3/s)
     """
     output = langevin(alpha=alpha, mass1=mass1, mass2=mass2) + dipole(temperature=temperature, mass1=mass2, mass2=mass2, mu_d=mu_d, c=c)
+
+    return output
+
+
+def aqo(temperature, mass1, mass2, Q, alpha):
+    """
+
+    :param temperature:
+    :param mass1:
+    :param mass2:
+    :param Q:
+    :param alpha:
+    :return:
+    """
+    _e = 4.8e-10  # CGS elementary charge
+    _kb = 1.38e-16  # CGS boltzmann constant
+    kL = langevin(alpha=alpha, mass1=mass1, mass2=mass2)
+
+    Q = Q * 1e-18 * 1e-8
+    alpha = alpha * 1e-24
+
+    top = Q ** 2
+    bot = (_kb * temperature) ** 0.5 * _e * alpha ** 1.5
+
+    output = kL * (1 + 0.0146 * top / bot)
 
     return output

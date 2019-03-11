@@ -69,8 +69,8 @@ class PState:
         self.rho1 = rho1
         self.rho2 = rho2
         self.rho3 = rho3
-        self.k1 = rate_constants.be_h2.rate_constant(pstate)
-        self.k2 = rate_constants.be_h2o.rate_constant(pstate)
+        self.k1 = rate_constants.be_h2(pstate)
+        self.k2 = rate_constants.be_h2o(pstate)
         self.k4 = 4.01e-9
 
     def Be(self, t, k3, k5, Be0, BeH0, BeOH0, O20):
@@ -186,8 +186,8 @@ class PstateNoInterchange:
         self.rho1 = rho1
         self.rho2 = rho2
         self.rho3 = rho3
-        self.k1 = rate_constants.be_h2.rate_constant(pstate)
-        self.k2 = rate_constants.be_h2o.rate_constant(pstate)
+        self.k1 = rate_constants.be_h2(pstate)
+        self.k2 = rate_constants.be_h2o(pstate)
         self.k4 = 4.01e-9
 
     def Be(self, t, k3, Be0, BeH0, BeOH0, O20):

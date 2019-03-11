@@ -163,3 +163,26 @@ def thermal(ion_temp, avg_temp):
     output = a * b * c
 
     return output
+
+
+def ratio(vals):
+    """
+    Returns ratio of first value to sum of list
+    :param vals: list or array of values
+    :return: ratio of first value to sum of list
+    """
+    output = vals[0] / _np.sum(vals)
+
+    return output
+
+
+def ratio_error(vals, errors):
+    tot = _np.sum(vals)
+    tot_error = _np.sqrt(_np.sum(errors))
+
+    a = errors[0] / tot
+    b = tot_error * vals[0] / tot ** 2
+
+    output = _np.sqrt(_np.sum(_np.array([a, b]) ** 2))
+
+    return output
