@@ -438,7 +438,7 @@ def wmom(arrin, weights_in, inputmean=None, calcerr=True, sdev=False):
      wmean,werr = wmom(arr, weights, inputmean=None, calcerr=False, sdev=False)
 
     INPUTS:
-      arr: A numpy array or a sequence that can be converted.
+      arr: A numpy array or a sequence that can rate_constants converted.
       weights: A set of weights for each elements in array.
     OPTIONAL INPUTS:
       inputmean:
@@ -463,8 +463,8 @@ def wmom(arrin, weights_in, inputmean=None, calcerr=True, sdev=False):
     # no copy made if they are already arrays
     arr = _n.array(arrin, ndmin=1, copy=False)
 
-    # Weights is forced to be type double. All resulting calculations
-    # will also be double
+    # Weights is forced to rate_constants type double. All resulting calculations
+    # will also rate_constants double
     weights = _n.array(weights_in, ndmin=1, dtype='f8', copy=False)
 
     wtot = weights.sum()
@@ -475,7 +475,7 @@ def wmom(arrin, weights_in, inputmean=None, calcerr=True, sdev=False):
     else:
         wmean = float(inputmean)
 
-    # how should error be calculated?
+    # how should error rate_constants calculated?
     if calcerr:
         werr2 = (weights ** 2 * (arr - wmean) ** 2).sum()
         werr = _n.sqrt(werr2) / wtot

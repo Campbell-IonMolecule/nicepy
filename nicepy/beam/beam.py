@@ -99,64 +99,32 @@ def pressure_or_density(value, temperature):
     return output.to(base)
 
 
-def reduced_mass(mass1, mass2):
+def pressure_to_density(pressure, temperature):
     """
-    Calculates reduced mass
-    :param mass1: mass 1
-    :param mass2: mass 2
-    :return: reduced mass
+    Calculates molecular density from a pressure
+    :param pressure: pressure values
+    :param temperature: temperature value
+    :return: array of densities
     """
-    top = mass1 * mass2
-    bot = mass1 + mass2
+    top = pressure
+    bot = 1 * _u.k * temperature
 
-    output = top / bot
+    output = top/bot
+    output.ito(_u.cm**(-3))
 
     return output
 
 
-def langevin(alpha, mu):
+def density_to_pressure(density, temperature):
     """
-    Calculates langevin rate constant
-    :param alpha: polarizability of neutral reactant (A^3)
-    :param mu: reduced mass of reactants (g)
-    :return: ion-neutral interaction rate constant (cm^3/s)
+    Calculates pressure from a molecular density
+    :param density: density of gas
+    :param temperature: temperature of gas
+    :return:
     """
-    a = 2 * _pi * _e / _sqrt(mu)
-    b = _sqrt(alpha)
 
-    output = a * b
-
-    return output
-
-
-def dipole(mu, mu_d, c, temperature):
-    """
-    Calculates ion-dipole interaction component to rate constant
-    :param mu: reduced mass of reactants (g)
-    :param mu_d: dipole moment of neutral reactant (D)
-    :param c: unitless factor parameterized by mu_d and alpha
-    :param temperature: collision temperature (K)
-    :return: ion-dipole interaction rate constant (cm^3/s)
-    """
-    top = 2 * _sqrt(2) * _pi * _e * c * mu_d
-    bot = _sqrt(mu * _pi * _kb * temperature)
-
-    output = top / bot
-
-    return output
-
-
-def ado(alpha, mu, mu_d, c, temperature):
-    """
-    Calculates full ADO rate constant
-    :param alpha: polarizability of neutral reactant (A^3)
-    :param mu: reduced mass of reactants (g)
-    :param mu_d: dipole moment of neutral reactant (D)
-    :param c: unitless factor parameterized by mu_d and alpha
-    :param temperature: collision temperature (K)
-    :return: ADO rate constant (cm^3/s)
-    """
-    output = langevin(mu, alpha) + dipole(mu, mu_d, c, temperature)
+    output = density * _u.k * temperature
+    output.ito(_u.torr)
 
     return output
 

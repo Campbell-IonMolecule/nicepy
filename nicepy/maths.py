@@ -112,3 +112,77 @@ def lorentzian(x, mu, gamma):
     output = top / bot
 
     return output
+
+
+def weighted_mean_and_error(values, errors):
+    """
+
+    :param values:
+    :param errors:
+    :return:
+    """
+    values = _np.array(values)
+    errors = _np.array(errors)
+    avg = _np.average(values, weights=1 / errors)
+    err = _np.sqrt(1 / _np.sum(1 / errors))
+
+    return avg, err
+
+
+def tsallis(ion_temp, avg_temp, n):
+    """
+    Non-normalized probability of an ion at ion-temp using a Tsallis distribution
+    :param ion_temp: temperature of ion (K)
+    :param avg_temp: average temperature of ions (K)
+    :param n: average harmonic oscillator level
+    :return: value
+    """
+    kb = 1.38e-23
+    energy = ion_temp * kb
+    top = (n - 3) * (n - 2) * (n - 1) * energy ** 2
+    bot = 2 * (n * kb * avg_temp) ** 3 * (1 + energy / (n * kb * avg_temp)) ** n
+
+    output = top / bot
+
+    return output
+
+
+def thermal(ion_temp, avg_temp):
+    """
+    Non-normalized probability of an ion at ion-temp using a thermal distribution
+    :param ion_temp: temperature of ion (K)
+    :param avg_temp: average temperature of ions (K)
+    :return: value
+    """
+    kb = 1.38e-23
+    energy = ion_temp * kb
+    a = 2 / (kb * avg_temp) ** (3 / 2)
+    b = _np.sqrt(energy / _np.pi)
+    c = _np.exp(-energy / (kb * avg_temp))
+
+    output = a * b * c
+
+    return output
+
+
+def ratio(vals):
+    """
+    Returns ratio of first value to sum of list
+    :param vals: list or array of values
+    :return: ratio of first value to sum of list
+    """
+    output = vals[0] / _np.sum(vals)
+
+    return output
+
+
+def ratio_error(vals, errors):
+    tot = _np.sum(vals)
+    tot_error = _np.sqrt(_np.sum(errors))
+
+    a = errors[0] / tot
+    b = tot_error * vals[0] / tot ** 2
+
+    output = _np.sqrt(_np.sum(_np.array([a, b]) ** 2))
+
+    return output

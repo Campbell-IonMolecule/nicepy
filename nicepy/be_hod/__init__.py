@@ -1,1 +1,1 @@
-from nicepy.be_hod.be_hod import *
+from nicepy.be_hod.branching_ratio import *

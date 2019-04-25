@@ -3,12 +3,6 @@ from scipy.constants import golden as _golden
 import numpy as _np
 
 
-def format_plot(fig, ax=False, **kwargs):
-    format_fig(fig, **kwargs)
-    if ax:
-        format_ax(ax, **kwargs)
-
-
 def format_fig(fig, height=8, width=8 * _golden, dpi=300):
     """
     Generic formatting of figure
@@ -22,7 +16,7 @@ def format_fig(fig, height=8, width=8 * _golden, dpi=300):
     fig.set_dpi(dpi)
 
 
-def format_ax(ax, font=30, label=24, tick=24, box_out=False, width=2):
+def format_ax(ax, font=30, label=24, tick=24, box_out=False, width=2, legend=True):
     """
     Generic formatting of plot axes
     :param ax:
@@ -37,10 +31,11 @@ def format_ax(ax, font=30, label=24, tick=24, box_out=False, width=2):
     ax.yaxis.offsetText.set_fontsize(label)
     _setp(ax.get_lines(), linewidth=width)
     ax.xaxis.offsetText.set_fontsize(label)
-    if box_out is True:
-        ax.legend(fontsize=label, frameon=False, loc='upper left', bbox_to_anchor=(1.04, 1))
-    elif box_out is False:
-        ax.legend(fontsize=label, frameon=False, loc=0)
+    if legend is True:
+        if box_out is True:
+            ax.legend(fontsize=label, frameon=False, loc='upper left', bbox_to_anchor=(1.04, 1))
+        elif box_out is False:
+            ax.legend(fontsize=label, frameon=False, loc=0)
     ax.xaxis.label.set_size(label)
     ax.yaxis.label.set_size(label)
     ax.title.set_fontsize(font)
