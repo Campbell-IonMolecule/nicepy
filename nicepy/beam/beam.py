@@ -68,6 +68,15 @@ def reaction_temperature(mu, velocity):
     return output
 
 
+def collision_energy(m1, m2, v1, v2):
+    mu = m1 * m2 / (m1 + m2)
+    v_com = (m1 * v2 + m2 * v2) / (m1 + m2)
+
+    output = 0.5 * mu * v_com ** 2
+
+    return output
+
+
 def pressure_or_density(value, temperature):
     """
     Calculates the reciprocal of input value based on the ideal gas law

@@ -139,7 +139,7 @@ class SharedFit(_DataObj):
             string = string[:-1]
         return string
 
-    def show(self, total=False, width=2, text=False, **kwargs):
+    def show(self, total=False, width=2, text=False, d=False, **kwargs):
         fig = _plt.figure()
         ax = fig.add_subplot(111)
 
@@ -153,13 +153,16 @@ class SharedFit(_DataObj):
             temp = [self.d['vals'][key] for key in self.f.keys()]
             tot = _np.sum(temp, axis=0)
         for key in self.f.keys():
-            line = ax.plot(xfit, self.f[key](xfit, *self.fit), label=key+'$^+$', linewidth=width)
+            if d:
+                s = d[key]
+            else:
+                s = key
+            line = ax.plot(xfit, self.f[key](xfit, *self.fit), label=s+'$^+$', linewidth=width)
             ax.errorbar(x, self.d['vals'][key]/tot,
                         yerr=self.d['errors'][key]/tot,
                         color=line[0].get_color(),
                         linestyle='', marker='o',
                         linewidth=width, capthick=width,
-                        markersize=(width - 1) * 4 + 6,
                         label='', **kwargs)
 
             total_data.append(self.d['vals'][key]/tot)

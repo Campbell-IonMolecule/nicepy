@@ -362,7 +362,9 @@ class TofSet:
                 idxs = indices
             fig, ax = _plt.subplots()
             ax.set_title('%s' % {key: val for key, val in zip(self.levels, idxs)})
-            group.loc[indices].plot.line(x=x, y='Volts', ax=ax, color='black', **kwargs)
+            temp = group.loc[indices]
+            temp['Volts'] = temp['Volts'].div(temp['Volts'].max())
+            temp.plot.line(x=x, y='Volts', ax=ax, color='black', **kwargs)
             if shade is True:
                 if self.idx is not False:
                     for key, val in self.idx.items():
